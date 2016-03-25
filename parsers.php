@@ -59,7 +59,7 @@ class WXR_Parser_SimpleXML {
 	function parse( $file ) {
 		$authors = $posts = $categories = $tags = $terms = array();
 
-		$internal_errors = libxml_use_internal_errors( true );
+		libxml_use_internal_errors( true );
 
 		$dom       = new DOMDocument;
 		$old_value = null;
@@ -106,7 +106,9 @@ class WXR_Parser_SimpleXML {
 		}
 
 		// grab authors
+		/** @var SimpleXMLElement $author_arr */
 		foreach ( $xml->xpath( '/rss/channel/wp:author' ) as $author_arr ) {
+			/** @var WP_Import_XML_Author $a */
 			$a                 = $author_arr->children( $namespaces['wp'] );
 			$login             = (string) $a->author_login;
 			$authors[ $login ] = array(
@@ -120,7 +122,9 @@ class WXR_Parser_SimpleXML {
 		}
 
 		// grab cats, tags and terms
+		/** @var SimpleXMLElement $term_arr */
 		foreach ( $xml->xpath( '/rss/channel/wp:category' ) as $term_arr ) {
+			/** @var WP_Import_XML_Term $t */
 			$t            = $term_arr->children( $namespaces['wp'] );
 			$categories[] = array(
 				'term_id'              => (int) $t->term_id,
@@ -131,7 +135,9 @@ class WXR_Parser_SimpleXML {
 			);
 		}
 
+		/** @var SimpleXMLElement $term_arr */
 		foreach ( $xml->xpath( '/rss/channel/wp:tag' ) as $term_arr ) {
+			/** @var WP_Import_XML_Term $t */
 			$t      = $term_arr->children( $namespaces['wp'] );
 			$tags[] = array(
 				'term_id'         => (int) $t->term_id,
@@ -141,7 +147,9 @@ class WXR_Parser_SimpleXML {
 			);
 		}
 
+		/** @var SimpleXMLElement $term_arr */
 		foreach ( $xml->xpath( '/rss/channel/wp:term' ) as $term_arr ) {
+			/** @var WP_Import_XML_Term $t */
 			$t       = $term_arr->children( $namespaces['wp'] );
 			$terms[] = array(
 				'term_id'          => (int) $t->term_id,
@@ -154,20 +162,26 @@ class WXR_Parser_SimpleXML {
 		}
 
 		// grab posts
+		/** @var SimpleXMLElement|WP_Import_XML_Item $item */
 		foreach ( $xml->channel->item as $item ) {
 			$post = array(
 				'post_title' => (string) $item->title,
 				'guid'       => (string) $item->guid,
 			);
 
+			/** @var SimpleXMLElement $dc */
 			$dc                  = $item->children( 'http://purl.org/dc/elements/1.1/' );
 			$post['post_author'] = (string) $dc->creator;
 
+			/** @var SimpleXMLElement $content */
 			$content              = $item->children( 'http://purl.org/rss/1.0/modules/content/' );
+			/** @var SimpleXMLElement $excerpt */
 			$excerpt              = $item->children( $namespaces['excerpt'] );
+			
 			$post['post_content'] = (string) $content->encoded;
 			$post['post_excerpt'] = (string) $excerpt->encoded;
 
+			/** @var WP_Import_XML_Post $wp */
 			$wp                     = $item->children( $namespaces['wp'] );
 			$post['post_id']        = (int) $wp->post_id;
 			$post['post_date']      = (string) $wp->post_date;
@@ -298,7 +312,21 @@ class WXR_Parser_XML {
 		'wp:comment_parent',
 		'wp:comment_user_id',
 	);
-
+	
+	private $wxr_version;
+	private $authors;
+	private $posts;
+	private $category;
+	private $tag;
+	private $term;
+	private $base_url;
+	private $in_post;
+	private $in_tag;
+	private $in_sub_tag;
+	private $cdata;
+	private $data;
+	private $sub_data;
+		
 	function parse( $file ) {
 		$this->wxr_version = $this->in_post = $this->cdata = $this->data = $this->sub_data = $this->in_tag = $this->in_sub_tag = false;
 		$this->authors     = $this->posts = $this->term = $this->category = $this->tag = array();
@@ -479,53 +507,54 @@ class WXR_Parser_Regex {
 	function parse( $file ) {
 		$wxr_version = $in_post = false;
 
+		$post    = '';
 		$fp = $this->fopen( $file, 'r' );
 		if ( $fp ) {
 			while ( ! $this->feof( $fp ) ) {
-				$importline = rtrim( $this->fgets( $fp ) );
+				$import_line = rtrim( $this->fgets( $fp ) );
 
-				if ( ! $wxr_version && preg_match( '|<wp:wxr_version>(\d+\.\d+)</wp:wxr_version>|', $importline, $version ) ) {
+				if ( ! $wxr_version && preg_match( '|<wp:wxr_version>(\d+\.\d+)</wp:wxr_version>|', $import_line, $version ) ) {
 					$wxr_version = $version[1];
 				}
 
-				if ( false !== strpos( $importline, '<wp:base_site_url>' ) ) {
-					preg_match( '|<wp:base_site_url>(.*?)</wp:base_site_url>|is', $importline, $url );
+				if ( false !== strpos( $import_line, '<wp:base_site_url>' ) ) {
+					preg_match( '|<wp:base_site_url>(.*?)</wp:base_site_url>|is', $import_line, $url );
 					$this->base_url = $url[1];
 					continue;
 				}
-				if ( false !== strpos( $importline, '<wp:category>' ) ) {
-					preg_match( '|<wp:category>(.*?)</wp:category>|is', $importline, $category );
+				if ( false !== strpos( $import_line, '<wp:category>' ) ) {
+					preg_match( '|<wp:category>(.*?)</wp:category>|is', $import_line, $category );
 					$this->categories[] = $this->process_category( $category[1] );
 					continue;
 				}
-				if ( false !== strpos( $importline, '<wp:tag>' ) ) {
-					preg_match( '|<wp:tag>(.*?)</wp:tag>|is', $importline, $tag );
+				if ( false !== strpos( $import_line, '<wp:tag>' ) ) {
+					preg_match( '|<wp:tag>(.*?)</wp:tag>|is', $import_line, $tag );
 					$this->tags[] = $this->process_tag( $tag[1] );
 					continue;
 				}
-				if ( false !== strpos( $importline, '<wp:term>' ) ) {
-					preg_match( '|<wp:term>(.*?)</wp:term>|is', $importline, $term );
+				if ( false !== strpos( $import_line, '<wp:term>' ) ) {
+					preg_match( '|<wp:term>(.*?)</wp:term>|is', $import_line, $term );
 					$this->terms[] = $this->process_term( $term[1] );
 					continue;
 				}
-				if ( false !== strpos( $importline, '<wp:author>' ) ) {
-					preg_match( '|<wp:author>(.*?)</wp:author>|is', $importline, $author );
+				if ( false !== strpos( $import_line, '<wp:author>' ) ) {
+					preg_match( '|<wp:author>(.*?)</wp:author>|is', $import_line, $author );
 					$a                                   = $this->process_author( $author[1] );
 					$this->authors[ $a['author_login'] ] = $a;
 					continue;
 				}
-				if ( false !== strpos( $importline, '<item>' ) ) {
+				if ( false !== strpos( $import_line, '<item>' ) ) {
 					$post    = '';
 					$in_post = true;
 					continue;
 				}
-				if ( false !== strpos( $importline, '</item>' ) ) {
+				if ( false !== strpos( $import_line, '</item>' ) ) {
 					$in_post       = false;
 					$this->posts[] = $this->process_post( $post );
 					continue;
 				}
 				if ( $in_post ) {
-					$post .= $importline . "\n";
+					$post .= $import_line . "\n";
 				}
 			}
 
@@ -643,6 +672,7 @@ class WXR_Parser_Regex {
 			$postdata['attachment_url'] = $attachment_url;
 		}
 
+		$post_terms = array();
 		preg_match_all( '|<category domain="([^"]+?)" nicename="([^"]+?)">(.+?)</category>|is', $post, $terms, PREG_SET_ORDER );
 		foreach ( $terms as $t ) {
 			$post_terms[] = array(
@@ -657,6 +687,7 @@ class WXR_Parser_Regex {
 
 		preg_match_all( '|<wp:comment>(.+?)</wp:comment>|is', $post, $comments );
 		$comments = $comments[1];
+		$post_comments = array();
 		if ( $comments ) {
 			foreach ( $comments as $comment ) {
 				preg_match_all( '|<wp:commentmeta>(.+?)</wp:commentmeta>|is', $comment, $commentmeta );
@@ -692,6 +723,7 @@ class WXR_Parser_Regex {
 
 		preg_match_all( '|<wp:postmeta>(.+?)</wp:postmeta>|is', $post, $postmeta );
 		$postmeta = $postmeta[1];
+		$post_postmeta = array();
 		if ( $postmeta ) {
 			foreach ( $postmeta as $p ) {
 				$post_postmeta[] = array(
