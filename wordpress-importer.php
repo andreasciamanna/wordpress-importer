@@ -277,7 +277,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 				<?php endif; ?>
 
 				<?php if ( $this->allow_fetch_attachments() ) : ?>
-					<h3><?php _e( 'Import Attachments', 'wordpress-importer' ); ?></h3>	<p>
+					<h3><?php _e( 'Import Attachments', 'wordpress-importer' ); ?></h3>    <p>
 						<input type="checkbox" value="1" name="fetch_attachments" id="import-attachments"/>
 						<label for="import-attachments"><?php _e( 'Download and import file attachments', 'wordpress-importer' ); ?></label>
 					</p>
@@ -298,18 +298,18 @@ if ( class_exists( 'WP_Importer' ) ) {
 		function author_select( $n, $author ) {
 			_e( 'Import author:', 'wordpress-importer' );
 			echo ' <strong>' . esc_html( $author['author_display_name'] );
-			if ( $this->version != '1.0' ) {
+			if ( $this->version !== '1.0' ) {
 				echo ' (' . esc_html( $author['author_login'] ) . ')';
 			}
 			echo '</strong><br />';
 
-			if ( $this->version != '1.0' ) {
+			if ( $this->version !== '1.0' ) {
 				echo '<div style="margin-left:18px">';
 			}
 
 			$create_users = $this->allow_create_users();
 			if ( $create_users ) {
-				if ( $this->version != '1.0' ) {
+				if ( $this->version !== '1.0' ) {
 					_e( 'or create new user with login name:', 'wordpress-importer' );
 					$value = '';
 				} else {
@@ -320,7 +320,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 				echo ' <input type="text" name="user_new[' . $n . ']" value="' . $value . '" /><br />';
 			}
 
-			if ( ! $create_users && $this->version == '1.0' ) {
+			if ( ! $create_users && $this->version === '1.0' ) {
 				_e( 'assign posts to an existing user:', 'wordpress-importer' );
 			} else {
 				_e( 'or assign posts to an existing user:', 'wordpress-importer' );
@@ -328,7 +328,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 			wp_dropdown_users( array( 'name' => "user_map[$n]", 'multi' => true, 'show_option_all' => __( '- Select -', 'wordpress-importer' ) ) );
 			echo '<input type="hidden" name="imported_authors[' . $n . ']" value="' . esc_attr( $author['author_login'] ) . '" />';
 
-			if ( $this->version != '1.0' ) {
+			if ( $this->version !== '1.0' ) {
 				echo '</div>';
 			}
 		}
@@ -361,7 +361,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 				} else if ( $create_users ) {
 					if ( ! empty( $_POST['user_new'][ $i ] ) ) {
 						$user_id = wp_create_user( $_POST['user_new'][ $i ], wp_generate_password() );
-					} else if ( $this->version != '1.0' ) {
+					} else if ( $this->version !== '1.0' ) {
 						$user_data = array(
 							'user_login'   => $old_login,
 							'user_pass'    => wp_generate_password(),
@@ -570,11 +570,11 @@ if ( class_exists( 'WP_Importer' ) ) {
 					continue;
 				}
 
-				if ( $post['status'] == 'auto-draft' ) {
+				if ( $post['status'] === 'auto-draft' ) {
 					continue;
 				}
 
-				if ( 'nav_menu_item' == $post['post_type'] ) {
+				if ( 'nav_menu_item' === $post['post_type'] ) {
 					$this->process_menu_item( $post );
 					continue;
 				}
@@ -582,7 +582,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 				$post_type_object = get_post_type_object( $post['post_type'] );
 
 				$post_exists = post_exists( $post['post_title'], '', $post['post_date'] );
-				if ( $post_exists && get_post_type( $post_exists ) == $post['post_type'] ) {
+				if ( $post_exists && get_post_type( $post_exists ) === $post['post_type'] ) {
 					printf( __( '%s &#8220;%s&#8221; already exists.', 'wordpress-importer' ), $post_type_object->labels->singular_name, esc_html( $post['post_title'] ) );
 					echo '<br />';
 					$comment_post_ID = $post_id = $post_exists;
@@ -629,7 +629,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 					$original_post_ID = $post['post_id'];
 					$postdata         = apply_filters( 'wp_import_post_data_processed', $postdata, $post );
 
-					if ( 'attachment' == $postdata['post_type'] ) {
+					if ( 'attachment' === $postdata['post_type'] ) {
 						$remote_url = ! empty( $post['attachment_url'] ) ? $post['attachment_url'] : $post['guid'];
 
 						// try to use _wp_attached file for upload folder placement to ensure the same location as the export site
@@ -637,7 +637,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 						$postdata['upload_date'] = $post['post_date'];
 						if ( isset( $post['postmeta'] ) ) {
 							foreach ( $post['postmeta'] as $meta ) {
-								if ( $meta['key'] == '_wp_attached_file' ) {
+								if ( $meta['key'] === '_wp_attached_file' ) {
 									if ( preg_match( '%^[0-9]{4}/[0-9]{2}%', $meta['value'], $matches ) ) {
 										$postdata['upload_date'] = $matches[0];
 									}
@@ -661,7 +661,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 						continue;
 					}
 
-					if ( $post['is_sticky'] == 1 ) {
+					if ( $post['is_sticky'] === 1 ) {
 						stick_post( $post_id );
 					}
 				}
@@ -680,7 +680,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 					$terms_to_set = array();
 					foreach ( $post['terms'] as $term ) {
 						// back compat with WXR 1.0 map 'tag' to 'post_tag'
-						$taxonomy    = ( 'tag' == $term['domain'] ) ? 'post_tag' : $term['domain'];
+						$taxonomy    = ( 'tag' === $term['domain'] ) ? 'post_tag' : $term['domain'];
 						$term_exists = term_exists( $term['slug'], $taxonomy );
 						$term_id     = is_array( $term_exists ) ? $term_exists['term_id'] : $term_exists;
 						if ( ! $term_id ) {
@@ -771,7 +771,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 						$key   = apply_filters( 'import_post_meta_key', $meta['key'], $post_id, $post );
 						$value = false;
 
-						if ( '_edit_last' == $key ) {
+						if ( '_edit_last' === $key ) {
 							if ( isset( $this->processed_authors[ intval( $meta['value'] ) ] ) ) {
 								$value = $this->processed_authors[ intval( $meta['value'] ) ];
 							} else {
@@ -789,7 +789,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 							do_action( 'import_post_meta', $post_id, $key, $value );
 
 							// if the post has a featured image, take note of this in case of remap
-							if ( '_thumbnail_id' == $key ) {
+							if ( '_thumbnail_id' === $key ) {
 								$this->featured_images[ $post_id ] = (int) $value;
 							}
 						}
@@ -811,7 +811,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 		 */
 		function process_menu_item( $item ) {
 			// skip draft, orphaned menu items
-			if ( 'draft' == $item['status'] ) {
+			if ( 'draft' === $item['status'] ) {
 				return;
 			}
 
@@ -819,7 +819,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 			if ( isset( $item['terms'] ) ) {
 				// loop through terms, assume first nav_menu term is correct menu
 				foreach ( $item['terms'] as $term ) {
-					if ( 'nav_menu' == $term['domain'] ) {
+					if ( 'nav_menu' === $term['domain'] ) {
 						$menu_slug = $term['slug'];
 						break;
 					}
@@ -848,11 +848,11 @@ if ( class_exists( 'WP_Importer' ) ) {
 				$$meta['key'] = $meta['value'];
 			}
 
-			if ( 'taxonomy' == $_menu_item_type && isset( $this->processed_terms[ intval( $_menu_item_object_id ) ] ) ) {
+			if ( 'taxonomy' === $_menu_item_type && isset( $this->processed_terms[ intval( $_menu_item_object_id ) ] ) ) {
 				$_menu_item_object_id = $this->processed_terms[ intval( $_menu_item_object_id ) ];
-			} else if ( 'post_type' == $_menu_item_type && isset( $this->processed_posts[ intval( $_menu_item_object_id ) ] ) ) {
+			} else if ( 'post_type' === $_menu_item_type && isset( $this->processed_posts[ intval( $_menu_item_object_id ) ] ) ) {
 				$_menu_item_object_id = $this->processed_posts[ intval( $_menu_item_object_id ) ];
-			} else if ( 'custom' != $_menu_item_type ) {
+			} else if ( 'custom' !== $_menu_item_type ) {
 				// associated object is missing or not imported yet, we'll retry later
 				$this->missing_menu_items[] = $item;
 
@@ -972,7 +972,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 			}
 
 			// make sure the fetch was successful
-			if ( $headers['response'] != '200' ) {
+			if ( $headers['response'] !== '200' ) {
 				@unlink( $upload['file'] );
 
 				return new WP_Error( 'import_file_error', sprintf( __( 'Remote server returned error response %1$d %2$s', 'wordpress-importer' ), esc_html( $headers['response'] ), get_status_header_desc( $headers['response'] ) ) );
@@ -980,20 +980,20 @@ if ( class_exists( 'WP_Importer' ) ) {
 
 			$filesize = filesize( $upload['file'] );
 
-			if ( isset( $headers['content-length'] ) && $filesize != $headers['content-length'] ) {
+			if ( isset( $headers['content-length'] ) && $filesize !== $headers['content-length'] ) {
 				@unlink( $upload['file'] );
 
 				return new WP_Error( 'import_file_error', __( 'Remote file is incorrect size', 'wordpress-importer' ) );
 			}
 
-			if ( 0 == $filesize ) {
+			if ( 0 === $filesize ) {
 				@unlink( $upload['file'] );
 
 				return new WP_Error( 'import_file_error', __( 'Zero size file downloaded', 'wordpress-importer' ) );
 			}
 
 			$max_size = (int) $this->max_attachment_size();
-			if ( count( $max_size ) && $filesize > $max_size ) {
+			if ( $max_size && $filesize > $max_size ) {
 				@unlink( $upload['file'] );
 
 				return new WP_Error( 'import_file_error', sprintf( __( 'Remote file is too large, limit is %s', 'wordpress-importer' ), size_format( $max_size ) ) );
@@ -1003,7 +1003,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 			$this->url_remap[ $url ]          = $upload['url'];
 			$this->url_remap[ $post['guid'] ] = $upload['url']; // r13735, really needed?
 			// keep track of the destination if the remote url is redirected somewhere else
-			if ( isset( $headers['x-final-location'] ) && $headers['x-final-location'] != $url ) {
+			if ( isset( $headers['x-final-location'] ) && $headers['x-final-location'] !== $url ) {
 				$this->url_remap[ $headers['x-final-location'] ] = $upload['url'];
 			}
 
@@ -1081,7 +1081,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 				if ( isset( $this->processed_posts[ $value ] ) ) {
 					$new_id = $this->processed_posts[ $value ];
 					// only update if there's a difference
-					if ( $new_id != $value ) {
+					if ( $new_id !== $value ) {
 						update_post_meta( $post_id, '_thumbnail_id', $new_id );
 					}
 				}
