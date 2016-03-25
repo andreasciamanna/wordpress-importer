@@ -638,7 +638,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 						if ( isset( $post['postmeta'] ) ) {
 							foreach ( $post['postmeta'] as $meta ) {
 								if ( $meta['key'] === '_wp_attached_file' ) {
-									if ( preg_match( '%^[0-9]{4}/[0-9]{2}%', $meta['value'], $matches ) ) {
+									if ( preg_match( '%^\d{4}/\d{2}%', $meta['value'], $matches ) ) {
 										$postdata['upload_date'] = $matches[0];
 									}
 									break;

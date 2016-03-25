@@ -67,7 +67,7 @@ class WXR_Parser_SimpleXML {
 			$old_value = libxml_disable_entity_loader( true );
 		}
 		$success = $dom->loadXML( file_get_contents( $file ) );
-		if ( ! is_null( $old_value ) ) {
+		if ( null !== $old_value ) {
 			libxml_disable_entity_loader( $old_value );
 		}
 
@@ -430,8 +430,8 @@ class WXR_Parser_XML {
 			case 'wp:category':
 			case 'wp:tag':
 			case 'wp:term':
-				$n = substr( $tag, 3 );
-				array_push( $this->$n, $this->data );
+				$n          = substr( $tag, 3 );
+				$this->$n[] = $this->data;
 				$this->data = false;
 				break;
 			case 'wp:author':
@@ -554,7 +554,7 @@ class WXR_Parser_Regex {
 	function get_tag( $string, $tag ) {
 		preg_match( "|<$tag.*?>(.*?)</$tag>|is", $string, $return );
 		if ( isset( $return[1] ) ) {
-			if ( substr( $return[1], 0, 9 ) === '<![CDATA[' ) {
+			if ( 0 === strpos( $return[1], '<![CDATA[' ) ) {
 				if ( strpos( $return[1], ']]]]><![CDATA[>' ) !== false ) {
 					preg_match_all( '|<!\[CDATA\[(.*?)\]\]>|s', $return[1], $matches );
 					$return = '';
@@ -634,13 +634,11 @@ class WXR_Parser_Regex {
 
 		$post_excerpt = $this->get_tag( $post, 'excerpt:encoded' );
 		$post_excerpt = preg_replace_callback( '|<(/?[A-Z]+)|', array( &$this, '_normalize_tag' ), $post_excerpt );
-		$post_excerpt = str_replace( '<br>', '<br />', $post_excerpt );
-		$post_excerpt = str_replace( '<hr>', '<hr />', $post_excerpt );
+		$post_excerpt = str_replace( array( '<br>', '<hr>' ), array( '<br />', '<hr />' ), $post_excerpt );
 
 		$post_content = $this->get_tag( $post, 'content:encoded' );
 		$post_content = preg_replace_callback( '|<(/?[A-Z]+)|', array( &$this, '_normalize_tag' ), $post_content );
-		$post_content = str_replace( '<br>', '<br />', $post_content );
-		$post_content = str_replace( '<hr>', '<hr />', $post_content );
+		$post_content = str_replace( array( '<br>', '<hr>' ), array( '<br />', '<hr />' ), $post_content );
 
 		$postdata = compact( 'post_id', 'post_author', 'post_date', 'post_date_gmt', 'post_content', 'post_excerpt', 'post_title', 'status', 'post_name', 'comment_status', 'ping_status', 'guid', 'post_parent', 'menu_order', 'post_type', 'post_password', 'is_sticky' );
 
