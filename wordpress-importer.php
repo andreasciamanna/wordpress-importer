@@ -359,6 +359,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 						$this->author_mapping[ $santized_old_login ] = $user->ID;
 					}
 				} else if ( $create_users ) {
+					$user_id = null;
 					if ( ! empty( $_POST['user_new'][ $i ] ) ) {
 						$user_id = wp_create_user( $_POST['user_new'][ $i ], wp_generate_password() );
 					} else if ( $this->version !== '1.0' ) {
@@ -844,6 +845,15 @@ if ( class_exists( 'WP_Importer' ) ) {
 				$menu_id = is_array( $menu_id ) ? $menu_id['term_id'] : $menu_id;
 			}
 
+			/* @todo these variables must be clearly defined */
+			/** @var int $_menu_item_object_id */
+			/** @var int $_menu_item_menu_item_parent */
+			/** @var string $_menu_item_type */
+			/** @var string $_menu_item_object */
+			/** @var string $_menu_item_url */
+			/** @var string $_menu_item_target */
+			/** @var string $_menu_item_xfn */
+			/** @var string $_menu_item_classes */
 			foreach ( $item['postmeta'] as $meta ) {
 				$$meta['key'] = $meta['value'];
 			}
@@ -1068,7 +1078,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 				// remap urls in post_content
 				$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->posts} SET post_content = REPLACE(post_content, %s, %s)", $from_url, $to_url ) );
 				// remap enclosure urls
-				$result = $wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->postmeta} SET meta_value = REPLACE(meta_value, %s, %s) WHERE meta_key='enclosure'", $from_url, $to_url ) );
+				$wpdb->query( $wpdb->prepare( "UPDATE {$wpdb->postmeta} SET meta_value = REPLACE(meta_value, %s, %s) WHERE meta_key='enclosure'", $from_url, $to_url ) );
 			}
 		}
 
