@@ -236,7 +236,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 			} else {
 				foreach ( $import_data['posts'] as $post ) {
 					$login = sanitize_user( $post['post_author'], true );
-					if ( empty( $login ) ) {
+					if ( '' === $login ) {
 						printf( __( 'Failed to import author %s. Their posts will be attributed to the current user.', 'wordpress-importer' ), esc_html( $post['post_author'] ) );
 						echo '<br />';
 						continue;
@@ -263,7 +263,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 				<?php wp_nonce_field( 'import-wordpress' ); ?>
 				<input type="hidden" name="import_id" value="<?php echo $this->id; ?>"/>
 
-				<?php if ( ! empty( $this->authors ) ) : ?>
+				<?php if ( count( $this->authors ) ) : ?>
 					<h3><?php _e( 'Assign Authors', 'wordpress-importer' ); ?></h3>
 					<p><?php _e( 'To make it easier for you to edit and save the imported content, you may want to reassign the author of the imported item to an existing user of this site. For example, you may want to import all the entries as <code>admin</code>s entries.', 'wordpress-importer' ); ?></p>
 					<?php if ( $this->allow_create_users() ) : ?>
@@ -404,7 +404,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 		function process_categories() {
 			$this->categories = apply_filters( 'wp_import_categories', $this->categories );
 
-			if ( empty( $this->categories ) ) {
+			if ( ! count( $this->categories ) ) {
 				return;
 			}
 
@@ -455,7 +455,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 		function process_tags() {
 			$this->tags = apply_filters( 'wp_import_tags', $this->tags );
 
-			if ( empty( $this->tags ) ) {
+			if ( ! count( $this->tags ) ) {
 				return;
 			}
 
@@ -500,7 +500,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 		function process_terms() {
 			$this->terms = apply_filters( 'wp_import_terms', $this->terms );
 
-			if ( empty( $this->terms ) ) {
+			if ( ! count( $this->terms ) ) {
 				return;
 			}
 
@@ -993,7 +993,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 			}
 
 			$max_size = (int) $this->max_attachment_size();
-			if ( ! empty( $max_size ) && $filesize > $max_size ) {
+			if ( count( $max_size ) && $filesize > $max_size ) {
 				@unlink( $upload['file'] );
 
 				return new WP_Error( 'import_file_error', sprintf( __( 'Remote file is too large, limit is %s', 'wordpress-importer' ), size_format( $max_size ) ) );

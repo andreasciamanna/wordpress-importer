@@ -399,7 +399,7 @@ class WXR_Parser_XML {
 		switch ( $tag ) {
 			case 'wp:comment':
 				unset( $this->sub_data['key'], $this->sub_data['value'] ); // remove meta sub_data
-				if ( ! empty( $this->sub_data ) ) {
+				if ( count( $this->sub_data ) ) {
 					$this->data['comments'][] = $this->sub_data;
 				}
 				$this->sub_data = false;
@@ -411,14 +411,14 @@ class WXR_Parser_XML {
 				);
 				break;
 			case 'category':
-				if ( ! empty( $this->sub_data ) ) {
+				if ( count( $this->sub_data ) ) {
 					$this->sub_data['name'] = $this->cdata;
 					$this->data['terms'][]  = $this->sub_data;
 				}
 				$this->sub_data = false;
 				break;
 			case 'wp:postmeta':
-				if ( ! empty( $this->sub_data ) ) {
+				if ( count( $this->sub_data ) ) {
 					$this->data['postmeta'][] = $this->sub_data;
 				}
 				$this->sub_data = false;
@@ -449,10 +449,10 @@ class WXR_Parser_XML {
 
 			default:
 				if ( $this->in_sub_tag ) {
-					$this->sub_data[ $this->in_sub_tag ] = ! empty( $this->cdata ) ? $this->cdata : '';
+					$this->sub_data[ $this->in_sub_tag ] = $this->cdata;
 					$this->in_sub_tag                    = false;
 				} else if ( $this->in_tag ) {
-					$this->data[ $this->in_tag ] = ! empty( $this->cdata ) ? $this->cdata : '';
+					$this->data[ $this->in_tag ] = $this->cdata;
 					$this->in_tag                = false;
 				}
 		}
@@ -657,7 +657,7 @@ class WXR_Parser_Regex {
 				'name'   => str_replace( array( '<![CDATA[', ']]>' ), '', $t[3] ),
 			);
 		}
-		if ( ! empty( $post_terms ) ) {
+		if ( count( $post_terms ) ) {
 			$postdata['terms'] = $post_terms;
 		}
 
@@ -692,7 +692,7 @@ class WXR_Parser_Regex {
 				);
 			}
 		}
-		if ( ! empty( $post_comments ) ) {
+		if ( count( $post_comments ) ) {
 			$postdata['comments'] = $post_comments;
 		}
 
@@ -706,7 +706,7 @@ class WXR_Parser_Regex {
 				);
 			}
 		}
-		if ( ! empty( $post_postmeta ) ) {
+		if ( count( $post_postmeta ) ) {
 			$postdata['postmeta'] = $post_postmeta;
 		}
 
