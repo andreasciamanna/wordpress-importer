@@ -1093,7 +1093,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 		 *
 		 * @param string $file Path to WXR file for parsing
 		 *
-		 * @return array Information gathered from the WXR file
+		 * @return array|WP_Error Information gathered from the WXR file
 		 */
 		function parse( $file ) {
 			$parser = new WXR_Parser();
