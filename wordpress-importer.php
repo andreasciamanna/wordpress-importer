@@ -64,9 +64,6 @@ if ( class_exists( 'WP_Importer' ) ) {
 		var $url_remap         = array();
 		var $featured_images   = array();
 
-		function WP_Import() { /* nothing */
-		}
-
 		/**
 		 * Registered callback function for the WordPress Importer
 		 * Manages the three separate stages of the WXR import process
