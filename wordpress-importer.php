@@ -566,7 +566,7 @@ if ( class_exists( 'WP_Importer' ) ) {
 					continue;
 				}
 
-				if ( isset( $this->processed_posts[ $post['post_id'] ] ) && ! empty( $post['post_id'] ) ) {
+				if ( ! empty( $post['post_id'] ) && isset( $this->processed_posts[ $post['post_id'] ] ) ) {
 					continue;
 				}
 
